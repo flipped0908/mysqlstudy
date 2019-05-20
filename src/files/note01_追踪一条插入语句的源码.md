@@ -1,0 +1,286 @@
+
+1 连接  
+path:client/mysql.cc  
+``` 
+static int
+sql_connect(char *host,char *database,char *user,char *password,uint silent){}
+
+```
+
+####  MySQL执行Query
+
+
+解析
+path:sql/sql_parse.cc 
+```
+//1 line:895
+bool do_command(THD *thd){}
+
+//2 line:1212
+bool dispatch_command(THD *thd, const COM_DATA *com_data,
+                      enum enum_server_command command)
+ {
+  ...   
+  switch (command) 
+  
+    case COM_QUERY:
+    {
+    
+     
+    }
+                      
+ }
+ 
+// 3 line:5415
+void mysql_parse(THD *thd, Parser_state *parser_state){
+    mysql_execute_command
+}
+
+// 4 line:2442 ~ 5069
+int mysql_execute_command(THD *thd, bool first_level){
+
+}
+
+查询
+sql/sql_select.cc
+
+```
+
+###  MySQL执行 Update
+
+
+path:sql/sql_update.cc
+line:242
+
+```
+bool mysql_update(THD *thd,
+                  List<Item> &fields,
+                  List<Item> &values,
+                  ha_rows limit,
+                  enum enum_duplicates handle_duplicates,
+                  ha_rows *found_return, ha_rows *updated_return){}
+```
+
+
+
+### MySQL 执行一条插入语句
+
+https://www.webfalse.com/read/207393/11940371.html
+
+
+path:
+line:
+
+```
+
+... 解析
+
+path: sql/sql_insert.cc
+
+line:421
+    bool Sql_cmd_insert::mysql_insert(THD *thd,TABLE_LIST *table_list)
+
+line:769
+    error= write_record(thd, insert_table, &info, &update);
+
+line:1505
+    int write_record(THD *thd, TABLE *table, COPY_INFO *info, COPY_INFO *update){}
+
+line:1873
+    else if ((error=table->file->ha_write_row(table->record[0])))
+    
+
+
+
+path:sql/handler.h
+line：2422
+  int ha_write_row(uchar * buf);
+  
+ 
+ 
+
+
+到innodb 引擎
+  
+path:storage/innobase/handler/ha_innodb.cc
+line:7437
+int ha_innobase::write_row(uchar*	record)	{}
+
+line:7598	
+error = row_insert_for_mysql((byte*) record, m_prebuilt);
+
+
+
+path: storage/innobase/row/row0mysql.cc
+line: 1848
+dberr_t
+row_insert_for_mysql(
+	const byte*		mysql_rec,
+	row_prebuilt_t*		prebuilt)
+	
+	
+dberr_t
+row_insert_for_mysql(
+	const byte*		mysql_rec,
+	row_prebuilt_t*		prebuilt)
+{
+	/* For intrinsic tables there a lot of restrictions that can be
+	relaxed including locking of table, transaction handling, etc.
+	Use direct cursor interface for inserting to intrinsic tables. */
+	if (dict_table_is_intrinsic(prebuilt->table)) {
+	    // 游标
+		return(row_insert_for_mysql_using_cursor(mysql_rec, prebuilt));
+	} else {
+	    // 图
+		return(row_insert_for_mysql_using_ins_graph(
+			mysql_rec, prebuilt));
+	}
+}
+
+
+line 1655
+    row_insert_for_mysql_using_ins_graph(
+
+
+line 1738
+    row_ins_step(thr);
+    
+    
+    
+path：storage/innobase/row/row0ins.cc
+line：3760
+    que_thr_t*
+    row_ins_step(
+    /*=========*/
+    	que_thr_t*	thr)	
+    	
+line:3816
+    err = lock_table(0, node->table, LOCK_IX, thr);
+
+
+line:  3853
+	err = row_ins(node, thr);
+	
+	
+line: 3683
+    dberr_t
+    row_ins(
+    /*====*/
+    	ins_node_t*	node,	/*!< in: row insert node */
+    	que_thr_t*	thr)	
+    	
+    	
+line:3715   
+    while (node->index != NULL) { 				
+        err = row_ins_index_entry_step(node, thr);
+    }
+    		
+   	
+    	
+line:3558
+    static MY_ATTRIBUTE((nonnull, warn_unused_result))
+    dberr_t
+    row_ins_index_entry_step(
+    /*=====================*/
+    	ins_node_t*	node,	/*!< in: row insert node */
+    	que_thr_t*	thr)	/*!< in: query thread */
+    	
+
+line:3414
+    static
+    dberr_t
+    row_ins_index_entry(
+    /*================*/
+    	dict_index_t*	index,	/*!< in: index */
+    	dtuple_t*	entry,	/*!< in/out: index entry to insert */
+    	que_thr_t*	thr)	/*!< in: query thread */
+    {
+    	ut_ad(thr_get_trx(thr)->id != 0);
+    
+    	DBUG_EXECUTE_IF("row_ins_index_entry_timeout", {
+    			DBUG_SET("-d,row_ins_index_entry_timeout");
+    			return(DB_LOCK_WAIT);});
+    
+    	if (dict_index_is_clust(index)) {
+    		return(row_ins_clust_index_entry(index, entry, thr, 0, false));
+    	} else {
+    		return(row_ins_sec_index_entry(index, entry, thr, false));
+    	}
+    }
+
+
+
+line: 3241
+    dberr_t
+    row_ins_clust_index_entry(
+    /*======================*/
+    	dict_index_t*	index,	/*!< in: clustered index */
+    	dtuple_t*	entry,	/*!< in/out: index entry to insert */
+    	que_thr_t*	thr,	/*!< in: query thread */
+    	ulint		n_ext,	/*!< in: number of externally stored columns */
+    	bool		dup_chk_only)
+    	
+    	
+line: 3921
+   		err = row_ins_clust_index_entry_low(
+   			flags, BTR_MODIFY_LEAF, index, n_uniq, entry,
+   			n_ext, thr, dup_chk_only);
+   			
+line: 3320
+        err = row_ins_clust_index_entry_low(
+        			flags, BTR_MODIFY_TREE, index, n_uniq, entry,
+        			n_ext, thr, dup_chk_only);
+        			
+
+line:2444
+
+    dberr_t
+    row_ins_clust_index_entry_low(
+    /*==========================*/
+    	ulint		flags,	/*!< in: undo logging and locking flags */
+    	ulint		mode,	/*!< in: BTR_MODIFY_LEAF or BTR_MODIFY_TREE,
+    				depending on whether we wish optimistic or
+    				pessimistic descent down the index tree */
+    	dict_index_t*	index,	/*!< in: clustered index */
+    	ulint		n_uniq,	/*!< in: 0 or index->n_uniq */
+    	dtuple_t*	entry,	/*!< in/out: index entry to insert */
+    	ulint		n_ext,	/*!< in: number of externally stored columns */
+    	que_thr_t*	thr,	/*!< in: query thread */
+    	bool		dup_chk_only)
+    				/*!< in: if true, just do duplicate check
+    				and return. don't execute actual insert. */
+    				
+    				
+line 2494
+    	if (mode == BTR_MODIFY_LEAF && dict_index_is_online_ddl(index)) {
+        // 如果正在修改表ddl 加锁
+     		mtr_s_lock(dict_index_get_lock(index), &mtr);
+     		
+line 2609
+        if (buf_LRU_buf_pool_running_out()) {
+        
+        				err = DB_LOCK_TABLE_FULL;
+        				goto err_exit;
+        			}    
+       // 如果缓存池子满了 就退出。 			
+        					
+```
+
+
+
+## 总结
+
+mysql 执行插入  handler 继承的方式 选择了innodb 引擎
+
+在插入的时候 先插入聚集索引，在插入不同索引
+
+插入的过程进行了ddl 判断 和 buffer pool 是否够用的判断
+
+
+## 遗漏
+更新和删除 查询的追纵还没有看 ， 在插入过程中怎么利用 innnodb 的redo log 还没有看， 
+以及两阶段提交的时候的 插入binglog 还没有找到
+
+
+
+
