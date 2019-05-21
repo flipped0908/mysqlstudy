@@ -3,7 +3,7 @@
 ##    mysql-5.7.26  版本的源码
 
 
-1 连接  
+#### 连接  
 path:client/mysql.cc  
 ``` 
 static int
@@ -11,44 +11,50 @@ sql_connect(char *host,char *database,char *user,char *password,uint silent){}
 
 ```
 
-####  MySQL执行Query
+#### 解析sql语句
 
-
-解析
-path:sql/sql_parse.cc 
 ```
-//1 line:895
-bool do_command(THD *thd){}
 
-//2 line:1212
+1
+path:sql/sql_parse.cc 
+line:895
+type:func
+    bool do_command(THD *thd){}
+
+2
+line:1212
 bool dispatch_command(THD *thd, const COM_DATA *com_data,
                       enum enum_server_command command)
  {
   ...   
   switch (command) 
-  
     case COM_QUERY:
     {
-    
-     
-    }
-                      
+     //执行查询
+    }             
  }
  
-// 3 line:5415
+3 
+line:5415
 void mysql_parse(THD *thd, Parser_state *parser_state){
     mysql_execute_command
 }
 
-// 4 line:2442 ~ 5069
+4 
+line:2442 ~ 5069
 int mysql_execute_command(THD *thd, bool first_level){
 
 }
 
-查询
-sql/sql_select.cc
-
 ```
+
+
+
+####  MySQL执行Query
+
+path sql/sql_select.cc
+
+
 
 ###  MySQL执行 Update
 
@@ -69,15 +75,15 @@ bool mysql_update(THD *thd,
 
 ### MySQL 执行一条插入语句
 
-https://www.webfalse.com/read/207393/11940371.html
+
+>参考：MySQL · 源码分析 · 一条insert语句的执行过程 2017-12-13 14:41:22
+ [https://www.webfalse.com/read/207393/11940371.html](https://www.webfalse.com/read/207393/11940371.html)
 
 
-path:
-line:
 
 ```
 
-... 解析
+... 解析SQL语句
 
 path: sql/sql_insert.cc
 
@@ -94,62 +100,47 @@ line:1873
     else if ((error=table->file->ha_write_row(table->record[0])))
     
 
-
-
 path:sql/handler.h
-line：2422
+line:2422
   int ha_write_row(uchar * buf);
-  
- 
- 
-
 
 到innodb 引擎
   
 path:storage/innobase/handler/ha_innodb.cc
 line:7437
-int ha_innobase::write_row(uchar*	record)	{}
+    int ha_innobase::write_row(uchar*	record)	{}
 
 line:7598	
-error = row_insert_for_mysql((byte*) record, m_prebuilt);
+    error = row_insert_for_mysql((byte*) record, m_prebuilt);
 
 
-
-path: storage/innobase/row/row0mysql.cc
-line: 1848
-dberr_t
-row_insert_for_mysql(
-	const byte*		mysql_rec,
-	row_prebuilt_t*		prebuilt)
-	
-	
-dberr_t
-row_insert_for_mysql(
-	const byte*		mysql_rec,
-	row_prebuilt_t*		prebuilt)
-{
-	/* For intrinsic tables there a lot of restrictions that can be
-	relaxed including locking of table, transaction handling, etc.
-	Use direct cursor interface for inserting to intrinsic tables. */
-	if (dict_table_is_intrinsic(prebuilt->table)) {
-	    // 游标
-		return(row_insert_for_mysql_using_cursor(mysql_rec, prebuilt));
-	} else {
-	    // 图
-		return(row_insert_for_mysql_using_ins_graph(
-			mysql_rec, prebuilt));
-	}
-}
+path:storage/innobase/row/row0mysql.cc
+line:1848
+    dberr_t
+    row_insert_for_mysql(
+        const byte*		mysql_rec,
+        row_prebuilt_t*		prebuilt)
+    {
+        /* For intrinsic tables there a lot of restrictions that can be
+        relaxed including locking of table, transaction handling, etc.
+        Use direct cursor interface for inserting to intrinsic tables. */
+        if (dict_table_is_intrinsic(prebuilt->table)) {
+            // 游标
+            return(row_insert_for_mysql_using_cursor(mysql_rec, prebuilt));
+        } else {
+            // 图
+            return(row_insert_for_mysql_using_ins_graph(
+                mysql_rec, prebuilt));
+        }
+    }
 
 
-line 1655
-    row_insert_for_mysql_using_ins_graph(
+line:1655
+    row_insert_for_mysql_using_ins_graph(mysql_rec, prebuilt);
 
 
-line 1738
+line:1738
     row_ins_step(thr);
-    
-    
     
 path：storage/innobase/row/row0ins.cc
 line：3760
@@ -162,11 +153,11 @@ line:3816
     err = lock_table(0, node->table, LOCK_IX, thr);
 
 
-line:  3853
+line:3853
 	err = row_ins(node, thr);
 	
 	
-line: 3683
+line:3683
     dberr_t
     row_ins(
     /*====*/
@@ -282,7 +273,7 @@ mysql 执行插入  handler 继承的方式 选择了innodb 引擎
 
 
 ## 遗漏
-更新和删除 查询的追纵还没有看 ， 在插入过程中怎么利用 innnodb 的redo log 还没有看， 
+更新和删除 查询的追纵还没有看 ， 在插入过程中怎么利用 innnodb 的redo log 还没有看 
 以及两阶段提交的时候的 插入binglog 还没有找到
 
 
