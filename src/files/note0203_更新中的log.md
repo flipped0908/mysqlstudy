@@ -23,6 +23,10 @@
 >MySQL · 引擎特性 · InnoDB redo log漫游
 [https://www.kancloud.cn/taobaomysql/monthly/67037](https://www.kancloud.cn/taobaomysql/monthly/67037)
 
+
+>mysql 的S 锁和X锁的区别
+[https://blog.csdn.net/qq_39478853/article/details/80623575](https://blog.csdn.net/qq_39478853/article/details/80623575)
+
 比较有价值的几篇  
 详细分析MySQL事务日志(redo log和undo log)    
 MySQL · 引擎特性 · InnoDB redo log漫游    
@@ -53,6 +57,11 @@ code：mtr_start(&mtr);
 用于管理对Page加锁、修改、释放、以及日志提交到公共buffer等工作。
 一个mtr操作必须是原子的，一个事务可以包含多个mtr。
 每个mtr完成后需要将本地产生的日志拷贝到公共缓冲区，将修改的脏页放到flush list上。      
+
+
+
+
+![](./img/0203-01.png)
 
 
 
