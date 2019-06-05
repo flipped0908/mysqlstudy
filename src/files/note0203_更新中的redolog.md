@@ -59,8 +59,6 @@ code：mtr_start(&mtr);
 每个mtr完成后需要将本地产生的日志拷贝到公共缓冲区，将修改的脏页放到flush list上。      
 
 
-
-
 ![](./img/0203-01.png)
 
 
