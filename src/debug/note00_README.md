@@ -1,4 +1,13 @@
 VERSION
 
-调试版本：
+调试版本：  
 8.0.16-debug
+
+
+在MAC下编译和使用Clion调试：
+
+参考链接  
+https://marcoma.xyz/2019/06/01/mysql-source-code-compile/
+
+
+myemail：flipped0908@163.com
