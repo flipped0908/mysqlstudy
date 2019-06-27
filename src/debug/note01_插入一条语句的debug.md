@@ -3,7 +3,7 @@
 
 在执行到：dberr_t row_ins_clust_index_entry_low 方法的时候适应lldb打印调用栈
 
-···
+```
 (lldb) bt
 * thread #2, stop reason = breakpoint 5.1
   * frame #0: 0x0000000109fc8906 mysqld`row_ins_clust_index_entry_low(flags=0, mode=2, index=0x00007f87a18416d8, n_uniq=1, entry=0x00007f87a1b98878, n_ext=0, thr=0x00007f87a0c25ff0, dup_chk_only=false) at row0ins.cc:2372
@@ -28,8 +28,10 @@
     frame #19: 0x00007fff7f2572eb libsystem_pthread.dylib`_pthread_body + 126
     frame #20: 0x00007fff7f25a249 libsystem_pthread.dylib`_pthread_start + 66
     frame #21: 0x00007fff7f25640d libsystem_pthread.dylib`thread_start + 13
-···
+```
 
-如图所示：
+
+调用栈如图所示：
+从 sql 到 innodb 引擎
 
 ![](img/0101.png)
