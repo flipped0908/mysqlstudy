@@ -10,3 +10,14 @@ https://marcoma.xyz/2019/06/01/mysql-source-code-compile/
 
 
 email：flipped0908@163.com
+
+
+checklist
+
+原理  
+1 锁
+
+应用  
+2 主备一致  
+3 join 优化 临时表
+

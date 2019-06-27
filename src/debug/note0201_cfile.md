@@ -151,7 +151,9 @@ static MY_ATTRIBUTE((warn_unused_result)) dberr_t
     choosing records to update. MySQL solves now the problem
     externally! */
 
-    / *更新导致一个排序字段(排序字段内b - tree)聚集索引记录的变化:执行更新删除标记和插入。待办事项!要做什么“万圣节问题”,一个更新将记录在指数再次更新当光标到达那里?解决方案:读操作时必须检查undo记录撤销数量选择记录更新。MySQL可以解决现在的问题外部!* /
+    / *更新导致一个排序字段(排序字段内b - tree)聚集索引记录的变化:执行更新删除标记和插入
+    。待办事项!要做什么“万圣节问题”,一个更新将记录在指数再次更新当光标到达那里?
+    解决方案:读操作时必须检查undo记录撤销数量选择记录更新。MySQL可以解决现在的问题外部!* /
 
 
 ```    
